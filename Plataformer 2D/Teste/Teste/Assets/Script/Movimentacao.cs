@@ -26,6 +26,10 @@ public class Movimentacao : MonoBehaviour
     private bool pulandoparede;
     [SerializeField] private float puloparedetempo;
 
+    //Cooldown do pulo na parede
+    float cooldowntempo = 0.5f;
+    bool emcooldown = false;
+
     //Deslizar na parede
     [SerializeField] private float velocidadedeslizar;
     private bool deslizando;
@@ -73,11 +77,7 @@ public class Movimentacao : MonoBehaviour
             {
                 deslizando = true;
                 corpo.velocity = new Vector2(transform.localScale.x, -velocidadedeslizar);
-            }
-
-            if (deslizando)
-            {
-            }
+            }        
         }
         else
         {
@@ -91,8 +91,19 @@ public class Movimentacao : MonoBehaviour
             Pular();
         }
 
+        //Cooldown
+        if (emcooldown)
+        {
+            cooldowntempo -= Time.deltaTime;
+            if (cooldowntempo <= 0)
+            {
+                emcooldown = false;
+                cooldowntempo = 0.5f;
+            }
+        }
+
         //Teste
-        print(pulandoparede);
+        print(cooldowntempo);
     }
 
     private void Pular()
@@ -102,18 +113,20 @@ public class Movimentacao : MonoBehaviour
             corpo.velocity = new Vector2(corpo.velocity.x, impulsodopulo);
             anim.SetTrigger("Pular");
         }
-
-        if (deslizando)
+        else if (deslizando)
         {
             pulandoparede = true;
             Invoke("pulandoparedefalso", puloparedetempo);
         }
 
-        if (pulandoparede)
+        if (!emcooldown)
         {
-            corpo.velocity = new Vector2(puloparede_x * -inputhor, puloparede_y);
+            if (pulandoparede)
+            {
+                corpo.velocity = new Vector2(puloparede_x * -inputhor, puloparede_y);
+            }
         }
-    }
+    }         
 
     private bool nochao() 
     {
@@ -129,7 +142,6 @@ public class Movimentacao : MonoBehaviour
     private void pulandoparedefalso() 
     {
         pulandoparede = false;
+        emcooldown = true;
     }
 }
-
-
