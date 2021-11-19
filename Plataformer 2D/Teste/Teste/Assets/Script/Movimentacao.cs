@@ -14,9 +14,21 @@ public class Movimentacao : MonoBehaviour
     private BoxCollider2D boxcollider;
    
     [SerializeField] private float velocidade;
+
     [SerializeField] private float impulsodopulo;
-    private float puloparedecooldown;
-    private float horizontalinput;
+
+    //Mexer horizontalmente
+    private float inputhor;
+
+    //Pulo da parede
+    [SerializeField] private float puloparede_x;
+    [SerializeField] private float puloparede_y;
+    private bool pulandoparede;
+    [SerializeField] private float puloparedetempo;
+
+    //Deslizar na parede
+    [SerializeField] private float velocidadedeslizar;
+    private bool deslizando;
 
     private void Awake()
     {
@@ -29,50 +41,58 @@ public class Movimentacao : MonoBehaviour
 
     private void Update()
     {
-        horizontalinput = Input.GetAxis("Horizontal");
+        inputhor = Input.GetAxisRaw("Horizontal");
         corpo.velocity = new Vector2(Input.GetAxis("Horizontal") * velocidade, corpo.velocity.y);
      
         //Mudar a direção do carinha quando estiver se mexendo para a esquerda
-        if (horizontalinput > 0.01f) 
+        if (inputhor > 0.01f) 
         {
             transform.localScale = Vector3.one;
         }
-        else if (horizontalinput < -0.01f)
+        else if (inputhor < -0.01f)
         {
             transform.localScale = new Vector3(-1, 1, 1);
         }
 
-        
 
-        //Parametros da animation
-        anim.SetBool("Correndo", horizontalinput != 0);
+        //Parametros da animatior
+        anim.SetBool("Correndo", inputhor != 0);
         anim.SetBool("No_chao", nochao());
 
-        //Pulo da parede
-        if(puloparedecooldown > 0.3f)
+        //Pulo da parede          
+        if (naparede() && !nochao())
         {
-            
-            if (naparede() && !nochao())
-            {
-                corpo.gravityScale = 0;
-                //corpo.velocity = new Vector2(transform.localScale.x, -1f);
+            //corpo.velocity = new Vector2(transform.localScale.x, -1f);
 
+            if (inputhor == 0)
+            {
+                deslizando = false;
+                corpo.velocity = new Vector2(transform.localScale.x, -velocidadedeslizar);
             }
             else
             {
-                corpo.gravityScale = 1.63f;
+                deslizando = true;
+                corpo.velocity = new Vector2(transform.localScale.x, -velocidadedeslizar);
             }
 
-            //Pular
-            if (Input.GetKey(KeyCode.Space))
+            if (deslizando)
             {
-                Pular();
             }
         }
         else
         {
-            puloparedecooldown += Time.deltaTime;
+            deslizando = false;
+            corpo.gravityScale = 1.63f;
         }
+
+        //Pular
+        if (Input.GetKey(KeyCode.Space))
+        {
+            Pular();
+        }
+
+        //Teste
+        print(pulandoparede);
     }
 
     private void Pular()
@@ -82,25 +102,17 @@ public class Movimentacao : MonoBehaviour
             corpo.velocity = new Vector2(corpo.velocity.x, impulsodopulo);
             anim.SetTrigger("Pular");
         }
-        else if(naparede() && !nochao())
+
+        if (deslizando)
         {
-            if (horizontalinput == 0)
-            {
-                corpo.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) + 10, 0);
-                transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-            }
-            else
-            {
-                corpo.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) + 3, 10);
-            }
-
-            puloparedecooldown = 0f;
-
+            pulandoparede = true;
+            Invoke("pulandoparedefalso", puloparedetempo);
         }
-    }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
+        if (pulandoparede)
+        {
+            corpo.velocity = new Vector2(puloparede_x * -inputhor, puloparede_y);
+        }
     }
 
     private bool nochao() 
@@ -112,6 +124,11 @@ public class Movimentacao : MonoBehaviour
     {
         RaycastHit2D tocando = Physics2D.BoxCast(boxcollider.bounds.center, boxcollider.bounds.size, 0, new Vector2(transform.localScale.x, 0), 0.1f, Paredelayer);
         return tocando.collider != null;
+    }
+
+    private void pulandoparedefalso() 
+    {
+        pulandoparede = false;
     }
 }
 
