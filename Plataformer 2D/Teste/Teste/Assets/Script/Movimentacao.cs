@@ -12,7 +12,7 @@ public class Movimentacao : MonoBehaviour
     private Animator anim;
 
     private BoxCollider2D boxcollider;
-   
+
     [SerializeField] private float velocidade;
 
     [SerializeField] private float impulsodopulo;
@@ -47,9 +47,9 @@ public class Movimentacao : MonoBehaviour
     {
         inputhor = Input.GetAxisRaw("Horizontal");
         corpo.velocity = new Vector2(Input.GetAxis("Horizontal") * velocidade, corpo.velocity.y);
-     
+
         //Mudar a direção do carinha quando estiver se mexendo para a esquerda
-        if (inputhor > 0.01f) 
+        if (inputhor > 0.01f)
         {
             transform.localScale = Vector3.one;
         }
@@ -77,7 +77,7 @@ public class Movimentacao : MonoBehaviour
             {
                 deslizando = true;
                 corpo.velocity = new Vector2(transform.localScale.x, -velocidadedeslizar);
-            }        
+            }
         }
         else
         {
@@ -103,7 +103,7 @@ public class Movimentacao : MonoBehaviour
         }
 
         //Teste
-        print(cooldowntempo);
+        //print(cooldowntempo);
     }
 
     private void Pular()
@@ -126,9 +126,9 @@ public class Movimentacao : MonoBehaviour
                 corpo.velocity = new Vector2(puloparede_x * -inputhor, puloparede_y);
             }
         }
-    }         
+    }
 
-    private bool nochao() 
+    private bool nochao()
     {
         RaycastHit2D tocando = Physics2D.BoxCast(boxcollider.bounds.center, boxcollider.bounds.size, 0, Vector2.down, 0.1f, Chaolayer);
         return tocando.collider != null;
@@ -139,9 +139,14 @@ public class Movimentacao : MonoBehaviour
         return tocando.collider != null;
     }
 
-    private void pulandoparedefalso() 
+    private void pulandoparedefalso()
     {
         pulandoparede = false;
         emcooldown = true;
+    }
+
+    public bool podeatacar()
+    {
+        return !naparede() && nochao() && inputhor == 0;
     }
 }
